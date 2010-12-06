@@ -11,6 +11,8 @@ function bake_drush_command() {
       'examples' => array(
         'drush bake basic.make custom.make' => ' Return merged make file of basic.make and custom.make',
         'drush bake basic.make custom.make --filter=dev' => ' Return merged make file of basic.make and custom.make including items tagged with dev',
+        'cat basic.make | drush bake custom.make --stdin' => ' Return merged make file of basic.make and custom.make',
+        'drush bake basic.make custom.make --output=finish.make' => ' place merged make file of basic.make and custom.make into finish.make',
       ),
       'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     ),
@@ -25,9 +27,11 @@ bake will combine two or more drush make files into one new file, with a few tri
 Each file can delete line from previous files. This is done one of two ways 
 1. ;del MATCH will find any line that has MATCH and remove it
 2. ;del_r MATCH works the same way but MATCH is assume to be a regex pattern
-
-also lines can be tag with a filter and only the lines that have the filter specified by --filter will be added to the end product to filter a line should start with ;#FILTER#
-I line can be added by multiple filters with ;#FILTER1,FILTER2#
+also lines can be tag with a filter and only the lines that have the filter specified by --filter will be added to the end product. 
+a like should start with ;#TAG# to tag a line with TAG
+i line can be tage mulitip limes with ;#TAG1,TAG2#
+if the --stdin flag is used the base file will come from stdin
+if the --output=FILE the output will be put into the FILE file
 HELP;
       return dt($help);
   }
