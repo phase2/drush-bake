@@ -4,7 +4,9 @@ function bake_drush_command() {
   return array(
     "bake" => array(
       'options' => array(
-        'filter' => 'Include lines that are taged with this filters'
+        'filter' => 'Include lines that are taged with this filters',
+        'output' => 'The name of the ouput file',
+        'stdin'  => ' a flag to pull the first file from stdin'
       ),
       'examples' => array(
         'drush bake basic.make custom.make' => ' Return merged make file of basic.make and custom.make',
@@ -30,12 +32,17 @@ HELP;
       return dt($help);
   }
 }
+
 function drush_bake() {
   /* 
    * parsing
    */
-  $files_paths = func_get_args();
   $files = array();
+  // if we are getting stdin put it in the files array first
+  if (drush_get_option('stdin')) {
+    $files['stdin'] = file("php://stdin");
+  }
+  $files_paths = func_get_args();
   foreach ($files_paths as $path) {
     $files[$path] = file($path);
   }
@@ -113,6 +120,10 @@ function drush_bake() {
   // remove empty lines
   $output = preg_grep("/^REMOVED$/", $output, PREG_GREP_INVERT);
   //convert $output to a string
-  $output = implode("", $output);
-  print $output;
+  if ($output_file = drush_get_option('output')) {
+    file_put_contents($output_file, $output);
+  }
+  else {
+    print implode("", $output);
+  }
 }
