@@ -53,51 +53,51 @@ function drush_bake() {
   /*
    * filtering
    */
-  if($filter_list = drush_get_option('filter')) {
-    $filters = explode(",", $filter_list);
-      foreach ($filters as $filter) {
-      $filter_lines = array();
+  $filter_lines = array();
 
-      // look into each file
-      foreach($files as $path => $lines) {
-        $lines_with_filters = preg_grep("|;#.*?#|", $lines);
+  // look into each file
+  foreach($files as $path => $lines) {
+    $lines_with_filters = preg_grep("|;#.*?#|", $lines);
 
-        // look at each line that has a filter directive
-        foreach ($lines_with_filters as $index =>$line) {
-          preg_match("|;#(.*?)#|", $line, $line_filters_list);
-          $line_filters = explode(',', $line_filters_list[1]);
+    // look at each line that has a filter directive
+    foreach ($lines_with_filters as $index =>$line) {
+      preg_match("|;#(.*?)#|", $line, $line_filters_list);
+      $line_filters = explode(',', $line_filters_list[1]);
 
-          //foreach every filter on a line populate the filter_lines array
-          foreach ($line_filters as $line_filter) {
-            $filter_lines[$line_filter][$path.$index] = array(
-              "path"=> $path,
-              "index"=> $index,
-              "line" => $line,
-            );
-          }
-        }
-      }
-      // Take each filters lines and put them into include and exclude arrays
-      $include_lines = array();
-      $exclude_lines = array();
-      foreach ($filter_lines as $filter=> $lines) {
-        if (in_array($filter, $filters)) {
-        $include_lines = array_merge($include_lines, $lines);
-        }
-        else {
-        $exclude_lines = array_merge($exclude_lines, $lines);
-        }
-      }
-      // remove filter tokens for include
-      foreach ($include_lines as $l) {
-        $files[$l['path']][$l['index']] = preg_replace("|;#.*?# ?|", "", $l['line']);
-      }
-      // remove lines for exclude lines
-      foreach ($exclude_lines as $l) {
-        $files[$l['path']][$l['index']] = "REMOVED";
+      //foreach every filter on a line populate the filter_lines array
+      foreach ($line_filters as $line_filter) {
+        $filter_lines[$line_filter][$path.$index] = array(
+          "path"=> $path,
+          "index"=> $index,
+          "line" => $line,
+        );
       }
     }
   }
+  // Take each filters lines and put them into include and exclude arrays
+  $include_lines = array();
+  $exclude_lines = array();
+  $filters = array();
+  if($filter_list = drush_get_option('filter')) {
+    $filters = explode(",", $filter_list);
+  }
+  foreach ($filter_lines as $filter=> $lines) {
+    if (in_array($filter, $filters)) {
+    $include_lines = array_merge($include_lines, $lines);
+    }
+    else {
+    $exclude_lines = array_merge($exclude_lines, $lines);
+    }
+  }
+  // remove filter tokens for include
+  foreach ($include_lines as $l) {
+    $files[$l['path']][$l['index']] = preg_replace("|;#.*?# ?|", "", $l['line']);
+  }
+  // remove lines for exclude lines
+  foreach ($exclude_lines as $l) {
+    $files[$l['path']][$l['index']] = "REMOVED";
+  }
+
   $output = array();
   foreach ($files as $path=> $lines) {
     /* 
