@@ -1,4 +1,8 @@
 <?php
+
+/*
+ * implimentation of hook_drush_command()
+ */
 function bake_drush_command() {
   return array(
     "bake" => array(
@@ -20,6 +24,9 @@ function bake_drush_command() {
   );
 }
 
+/*
+ * implimentation of hook_drush_help
+ */
 function bake_drush_help($section) { 
   switch ($section) {
     case 'drush:bake':
@@ -37,10 +44,14 @@ HELP;
   }
 }
 
+/*
+ * the command for dursh bake
+ */
 function drush_bake() {
   $files = array();
   $stdinfile = FALSE;
-  // if we are getting stdin put it in the files array first
+  // if we are getting stdin put in a temp file
+  // and then add that file to the files array
   if (drush_get_option('stdin')) {
     $stdin = file_get_content("php://stdin");
       $stdinfile = tempname("/tmp", "stdin");
@@ -52,9 +63,12 @@ function drush_bake() {
     }
     $files[] = $stinfile;
   }
+  
+  //grab args and add them to files
   $args = func_get_args();
   $files = array_merge($files, $args);
 
+  //init the info and config arrays
   $info = array();
   $config = array(
     'type'=> drush_get_option('type'),
@@ -64,25 +78,35 @@ function drush_bake() {
   );
 
   foreach ($files as $file) {
-    $details = pathinfo($file);
-    if ($details['extension'] == 'php') {
-      bake_include($info, $config, $file);
-    }
-    elseif ($details['extension'] == 'make') {
-    $info = array_merge_recursive($info, drush_make_parse_info_file($file));
+    if (is_file($file)) {
+      $details = pathinfo($file);
+      if ($details['extension'] == 'php') {
+        //if a php file then let it modify info and config
+        bake_include($info, $config, $file);
+      }
+      elseif ($details['extension'] == 'make') {
+        //if a make file merge it to the current info array
+        //TODO: check to insure we have a parseable file
+      $info = array_merge_recursive($info, drush_make_parse_info_file($file));
+      }
     }
   }
-  $output = implode("\n",bake_unparse($info));
+  
+  //if we created temp stdinfile remove it
   if ($stdinfile) {
     unlink($stdinfile);
   }
 
+  // BUILD OUTPUT
+  $output = implode("\n",bake_unparse($info));
   if ($out_file = drush_get_option('output')) {
     file_put_contents($out_file, $output);
   }
   elseif($make_dir = drush_get_option('make')) {
     $tmp_make_file = tempnam("/tmp", "make");
     file_put_contents($tmp_make_file, $output);
+    //TODO: I am sure there is a drush way to do this but
+    //I do not know what it is
     system("drush make $tmp_make_file $make_dir");
     unlink($tmp_make_file);
   }
@@ -91,9 +115,16 @@ function drush_bake() {
   }
 }
 
+/*
+ * takes an array and returns an array of lines formating
+ * like a php info file
+ * this is a recursive function and should only be called with
+ * $array populated
+ */
 function bake_unparse($array, $current = FALSE) {
   $lines = array();
   if (!$current) {
+    // if this is the first pass then we can use the key as the current
     foreach ($array as $key=>$value) {
       $lines = array_merge($lines, bake_unparse($value, $key));
     }
@@ -102,9 +133,13 @@ function bake_unparse($array, $current = FALSE) {
     if(is_array($array)) {
       foreach ($array as $key=>$value) {
         $sub_current = $current;
+        //$the key is numeric so we write the new item []
+        //to current before passing off to bake_unparse
         if (is_numeric($key)) {
           $sub_current .= '[]';
         }
+        // the $key is not numeric so we add the hash look up [$key]
+        // before anding off to bake_unparse
         else {
           $sub_current .= "[$key]";
         }
@@ -112,6 +147,7 @@ function bake_unparse($array, $current = FALSE) {
       }
     }
     else {
+      //$array is a value so now it is time to write the assignemt
       $lines[] = "$current = $array";
     }
   }
@@ -119,6 +155,9 @@ function bake_unparse($array, $current = FALSE) {
   
 }
 
+/*
+ * includes the $file, sandbox variable scoop to $info and $config
+ */
 function bake_include(&$info, &$config, $file) {
   include($file);
 }
