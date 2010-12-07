@@ -1,5 +1,0 @@
-<?php
-if ($config['type'] == 'dev') {
-  $info['projects'][] = 'cck';
-}
-unset($info['projects']['tao']);

@@ -82,6 +82,16 @@ function drush_bake() {
   $args = func_get_args();
   $files = array_merge($files, $args);
 
+  /*
+   * This code is to capture our openpublish and openpublic data
+   */
+  if (in_array($args[0], array('openpublish' ,'openpublic'))) {
+    print 'bob';
+    $files = array(
+      'base.tpl.make',
+      $args[0] .".tpl.bake"
+    );
+  }
   //init the info and config arrays
   $make_dir = FALSE;
   $info = array();
