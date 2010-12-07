@@ -61,7 +61,7 @@ HELP;
 /*
  * the command for dursh bake
  */
-function drush_bake() {
+ function drush_bake() {
   $files = array();
   $stdinfile = FALSE;
   // if we are getting stdin put in a temp file
@@ -107,20 +107,7 @@ function drush_bake() {
 
   foreach ($files as $file) {
     if (is_file($file)) {
-      $details = pathinfo($file);
-      switch ($details['extension']) {
-        case 'php':
-        case 'bake':
-          print_r($file);
-          //if a php file then let it modify info and config
-          bake_include($info, $config, $file);
-        break;
-        case 'make':
-          //if a make file merge it to the current info array
-          //TODO: check to insure we have a parseable file
-          $info = array_merge_recursive($info, drush_make_parse_info_file($file));
-        break;
-      }
+      bake_merge_file($info, $config, $file);
     }
     else {
       $make_dir = $file;
@@ -208,4 +195,34 @@ function bake_unparse($array, $current = FALSE) {
  */
 function bake_include(&$info, &$config, $file) {
   include($file);
+  print_r($info);
+}
+
+function bake_merge_file(&$info, &$config, $file) {
+  $tmpfile = FALSE;
+  if (is_array($file)) {
+    $tempdir = tempnam('/tmp','downloaddir');
+    unlink($tempdir);
+    mkdir($tempdir);
+    drush_make_download_factory($file['type'], $file['name'], $file, $tempdir);
+    $file = $tempdir. '/'. $file['name'];
+    $tmpfile = $file;
+  }
+  $details = pathinfo($file);
+  switch ($details['extension']) {
+    case 'php':
+    case 'bake':
+      //if a php file then let it modify info and config
+      bake_include($info, $config, $file);
+    break;
+    case 'make':
+      //if a make file merge it to the current info array
+      //TODO: check to insure we have a parseable file
+      $info = array_merge_recursive($info, drush_make_parse_info_file($file));
+    break;
+  }
+  if ($tmpfile) {
+    print $tmpfile;
+    unlink($tmpfile);
+  }
 }
