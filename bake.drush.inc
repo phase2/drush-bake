@@ -3,21 +3,34 @@
 /*
  * implimentation of hook_drush_command()
  */
-function bake_drush_command() {
+function bake_drush_command() { 
   return array(
     "bake" => array(
       'options' => array(
         'type' => 'Pass on config info',
         'output' => 'The name of the ouput file',
         'stdin'  => ' a flag to pull the first file from stdin',
-        'make' => 'The directory to make to after the file finish'
+        'make' => 'The directory to make to after the file finish',
+        'version' => 'FOR MAKE Print the version and exit.',
+        'contrib-destination=path' => 'FOR MAKE Specify a path under which modules and themes should be placed. Defaults to sites/all.',
+        'force-complete' => 'FOR MAKE Force a complete build even if errors occur.',
+        'md5' => 'FOR MAKE Output an md5 hash of the current build after completion.',
+        'no-clean' => 'FOR MAKE Leave temporary build directories in place instead of cleaning up after completion.',
+        'no-core' => 'FOR MAKE Do not require a Drupal core project to be specified.',
+        'no-patch-txt' => 'FOR MAKE Do not write a PATCHES.txt file in the directory of each patched project.',
+        'prepare-install' => 'FOR MAKE Prepare the built site for installation. Generate a properly permissioned settings.php and files directory.',
+        'tar' => 'FOR MAKE Generate a tar archive of the build. The output filename will be [build path].tar.gz.',
+        'test' => 'FOR MAKE Run a temporary test build and clean up.',
+        'translations=languages' => 'FOR MAKE Retrieve translations for the specified comma-separated list of language(s) if available for all projects.',
+        'working-copy' => 'FOR MAKE Where possible, retrieve a working copy of projects from their respective repositories.',
       ),
       'examples' => array(
-        'drush bake basic.make custom.make' => ' Return merged make file of basic.make and custom.make',
-        'drush bake basic.make custom.php --type=dev' => ' Return a make file started as basic.make and modified by custom.php',
-        'cat basic.make | drush bake custom.make --stdin' => ' Return merged make file of basic.make and custom.make',
-        'drush bake basic.make custom.make --output=finish.make' => ' place merged make file of basic.make and custom.make into finish.make',
-        'drush bake basic.make custom.make --make=/sitepath' => ' merges make file of basic.make and custom.make and the use that to build a site at sitepath',
+        'drush bake A.make B.make' => ' Return merged make file of A.make and B.make',
+        'drush bake A.make B.bake --type=dev' => ' Return a make file started as A.make and modified by the php in B.bake',
+        'cat A.make | drush bake B.make --stdin' => ' Return merged make file of A.make and B.make',
+        'drush bake A.make B.make --output=O.make' => ' place merged make file of A.make and B.make into O.make',
+        'drush bake A.make B.make --make=PATH' => ' merges make file of A.make and B.make and the use that to build a site at PATH',
+        'drush bake A.make B.make PATH' => ' merges make file of A.make and B.make and the use that to build a site at PATH',
       ),
       'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     ),
@@ -32,13 +45,14 @@ function bake_drush_help($section) {
     case 'drush:bake':
       $help = <<<HELP
 Drush bake is a drush command that takes make files and php includes and bake up a new drush make file.
-it can have any number of arguments which can be .make files or .php files.  
+it can have any number of arguments which can be .make files or .bake/.php files.  
 If a .make files is passed it is parsed and merged with the previouse file
 If a .php file is passed it is include, it has access to the following arrays
   \$info : which is the parsing of the previous make files
   \$config : which is populated with all of options
   the .php file can read and modify these to its hearts content.
   also as this ia a php file it has access to drush_get_option('OPTION') if it wants to use a undocument option.
+It will make the site if one provides a dir with --make=DIR or as the last parameter (this must not exists yet)
 HELP;
       return dt($help);
   }
@@ -69,6 +83,7 @@ function drush_bake() {
   $files = array_merge($files, $args);
 
   //init the info and config arrays
+  $make_dir = FALSE;
   $info = array();
   $config = array(
     'type'=> drush_get_option('type'),
@@ -80,15 +95,22 @@ function drush_bake() {
   foreach ($files as $file) {
     if (is_file($file)) {
       $details = pathinfo($file);
-      if ($details['extension'] == 'php') {
-        //if a php file then let it modify info and config
-        bake_include($info, $config, $file);
+      switch ($details['extension']) {
+        case 'php':
+        case 'bake':
+          print_r($file);
+          //if a php file then let it modify info and config
+          bake_include($info, $config, $file);
+        break;
+        case 'make':
+          //if a make file merge it to the current info array
+          //TODO: check to insure we have a parseable file
+          $info = array_merge_recursive($info, drush_make_parse_info_file($file));
+        break;
       }
-      elseif ($details['extension'] == 'make') {
-        //if a make file merge it to the current info array
-        //TODO: check to insure we have a parseable file
-      $info = array_merge_recursive($info, drush_make_parse_info_file($file));
-      }
+    }
+    else {
+      $make_dir = $file;
     }
   }
   
@@ -102,12 +124,25 @@ function drush_bake() {
   if ($out_file = drush_get_option('output')) {
     file_put_contents($out_file, $output);
   }
-  elseif($make_dir = drush_get_option('make')) {
+  elseif($make_dir || ($make_dir = drush_get_option('make'))) {
     $tmp_make_file = tempnam("/tmp", "make");
     file_put_contents($tmp_make_file, $output);
     //TODO: I am sure there is a drush way to do this but
     //I do not know what it is
-    system("drush make $tmp_make_file $make_dir");
+    $make_params = '';
+    $make_params .= drush_get_option('version') ? " version" : "";
+    $make_params .= $v = drush_get_option('contrib-destination') ? " contrib-destination=$v" : "";
+    $make_params .= drush_get_option('force-complete') ? " force-complete" : "";
+    $make_params .= drush_get_option('md5') ? " md5" : "";
+    $make_params .= drush_get_option('no-clean') ? " no-clean" : "";
+    $make_params .= drush_get_option('no-core') ? " no-core" : "";
+    $make_params .= drush_get_option('no-patch-txt') ? " no-patch-txt" : "";
+    $make_params .= drush_get_option('prepare-install') ? " prepare-install" : "";
+    $make_params .= drush_get_option('tar') ? " tar" : "";
+    $make_params .= drush_get_option('test') ? " test" : "";
+    $make_params .= $v=drush_get_option('translations') ? " translations=$v" : "";
+    $make_params .= drush_get_option('working-copy') ? " working-copy" : "";
+    system("drush make $tmp_make_file $make_dir $make_params");
     unlink($tmp_make_file);
   }
   else {
