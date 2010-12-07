@@ -85,18 +85,21 @@ function drush_bake() {
   /*
    * This code is to capture our openpublish and openpublic data
    */
+  $type = drush_get_option('type');
   if (in_array($args[0], array('openpublish' ,'openpublic'))) {
-    print 'bob';
     $files = array(
       'base.tpl.make',
       $args[0] .".tpl.bake"
     );
+    if(!$type) {
+      $type = 'dev';
+    }
   }
   //init the info and config arrays
   $make_dir = FALSE;
   $info = array();
   $config = array(
-    'type'=> drush_get_option('type'),
+    'type'=> $type,
     'stdin'=> drush_get_option('stdin'),
     'make'=> drush_get_option('make'),
     'output'=> drush_get_option('output'),
