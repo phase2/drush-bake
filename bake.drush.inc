@@ -88,7 +88,6 @@ HELP;
   $type = drush_get_option('type');
   if (in_array($args[0], array('openpublish' ,'openpublic'))) {
     $files = array(
-      'base.tpl.make',
       $args[0] .".tpl.bake"
     );
     if(!$type) {
@@ -130,18 +129,18 @@ HELP;
     //TODO: I am sure there is a drush way to do this but
     //I do not know what it is
     $make_params = '';
-    $make_params .= drush_get_option('version') ? " version" : "";
-    $make_params .= $v = drush_get_option('contrib-destination') ? " contrib-destination=$v" : "";
-    $make_params .= drush_get_option('force-complete') ? " force-complete" : "";
-    $make_params .= drush_get_option('md5') ? " md5" : "";
-    $make_params .= drush_get_option('no-clean') ? " no-clean" : "";
-    $make_params .= drush_get_option('no-core') ? " no-core" : "";
-    $make_params .= drush_get_option('no-patch-txt') ? " no-patch-txt" : "";
-    $make_params .= drush_get_option('prepare-install') ? " prepare-install" : "";
-    $make_params .= drush_get_option('tar') ? " tar" : "";
-    $make_params .= drush_get_option('test') ? " test" : "";
-    $make_params .= $v=drush_get_option('translations') ? " translations=$v" : "";
-    $make_params .= drush_get_option('working-copy') ? " working-copy" : "";
+    $make_params .= drush_get_option('version') ? " --version" : "";
+    $make_params .= $v = drush_get_option('contrib-destination') ? " --contrib-destination=$v" : "";
+    $make_params .= drush_get_option('force-complete') ? " --force-complete" : "";
+    $make_params .= drush_get_option('md5') ? " --md5" : "";
+    $make_params .= drush_get_option('no-clean') ? " --no-clean" : "";
+    $make_params .= drush_get_option('no-core') ? " --no-core" : "";
+    $make_params .= drush_get_option('no-patch-txt') ? " --no-patch-txt" : "";
+    $make_params .= drush_get_option('prepare-install') ? " --prepare-install" : "";
+    $make_params .= drush_get_option('tar') ? " --tar" : "";
+    $make_params .= drush_get_option('test') ? " --test" : "";
+    $make_params .= $v=drush_get_option('translations') ? " --translations=$v" : "";
+    $make_params .= drush_get_option('working-copy') ? " --working-copy" : "";
     system("drush make $tmp_make_file $make_dir $make_params");
     unlink($tmp_make_file);
   }
