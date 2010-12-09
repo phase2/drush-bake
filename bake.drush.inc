@@ -97,7 +97,7 @@ HELP;
 /*
  * the command for dursh bake
  */
- function drush_bake_bakeit() {
+ function drush_bakeit() {
   $files = array();
   $stdinfile = FALSE;
   // if we are getting stdin put in a temp file
