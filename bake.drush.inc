@@ -6,6 +6,16 @@
 function bake_drush_command() { 
   return array(
     "bake" => array(
+      'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+      'option' => array(
+        'type' => 'Pass on config info',
+      ),
+      'examples' => array(
+        'drush bake A.bake' => "Creates a A.make file and then build a site i A/ with that file",
+        'drush bake A.bake B' => "Creates a A.make file and then builds a site in B/ with that file",
+      ),
+    ) ,
+    "bakeit" => array(
       'options' => array(
         'type' => 'Pass on config info',
         'output' => 'The name of the ouput file',
@@ -25,24 +35,50 @@ function bake_drush_command() {
         'working-copy' => 'FOR MAKE Where possible, retrieve a working copy of projects from their respective repositories.',
       ),
       'examples' => array(
-        'drush bake A.make B.make' => ' Return merged make file of A.make and B.make',
-        'drush bake A.make B.bake --type=dev' => ' Return a make file started as A.make and modified by the php in B.bake',
-        'cat A.make | drush bake B.make --stdin' => ' Return merged make file of A.make and B.make',
-        'drush bake A.make B.make --output=O.make' => ' place merged make file of A.make and B.make into O.make',
-        'drush bake A.make B.make --make=PATH' => ' merges make file of A.make and B.make and the use that to build a site at PATH',
-        'drush bake A.make B.make PATH' => ' merges make file of A.make and B.make and the use that to build a site at PATH',
+        'drush bakeit A.make B.make' => ' Return merged make file of A.make and B.make',
+        'drush bakeit A.make B.bake --type=dev' => ' Return a make file started as A.make and modified by the php in B.bake',
+        'cat A.make | drush bakeit B.make --stdin' => ' Return merged make file of A.make and B.make',
+        'drush bakeit A.make B.make --output=O.make' => ' place merged make file of A.make and B.make into O.make',
+        'drush bakeit A.make B.make --make=PATH' => ' merges make file of A.make and B.make and the use that to build a site at PATH',
+        'drush bakeit A.make B.make PATH' => ' merges make file of A.make and B.make and the use that to build a site at PATH',
       ),
       'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     ),
   );
 }
 
+function drush_bake() {
+  
+  $args = func_get_args();
+  $details = pathinfo($args[0]);
+  $path = $args[0];
+  $name = $details['filename'];
+  $build = $a = $args[1]? $a : $name;
+  $cmd = "drush bakeit $path $build";
+  $cmd .= " --output=$name.make";
+  $cmd .= " --working-path";
+  $cmd .= " --prepare-install";
+  
+  if ($type = drush_get_option('type')) {
+    $cmd .= " --type=$type";
+  }
+  else {
+    $cmd .= " --type=dev";
+  }
+  system($cmd);
+
+
+  
+}
 /*
  * implimentation of hook_drush_help
  */
 function bake_drush_help($section) { 
   switch ($section) {
     case 'drush:bake':
+      return ("Drush bake");
+    break;
+    case 'drush:bakeit':
       $help = <<<HELP
 Drush bake is a drush command that takes make files and php includes and bake up a new drush make file.
 it can have any number of arguments which can be .make files or .bake/.php files.  
@@ -61,7 +97,7 @@ HELP;
 /*
  * the command for dursh bake
  */
- function drush_bake() {
+ function drush_bake_bakeit() {
   $files = array();
   $stdinfile = FALSE;
   // if we are getting stdin put in a temp file
@@ -119,11 +155,13 @@ HELP;
   }
 
   // BUILD OUTPUT
+  $done = FALSE;
   $output = implode("\n",bake_unparse($info));
   if ($out_file = drush_get_option('output')) {
     file_put_contents($out_file, $output);
+    $done = TRUE;
   }
-  elseif($make_dir || ($make_dir = drush_get_option('make'))) {
+  if($make_dir || ($make_dir = drush_get_option('make'))) {
     $tmp_make_file = tempnam("/tmp", "make");
     file_put_contents($tmp_make_file, $output);
     //TODO: I am sure there is a drush way to do this but
@@ -143,8 +181,9 @@ HELP;
     $make_params .= drush_get_option('working-copy') ? " --working-copy" : "";
     system("drush make $tmp_make_file $make_dir $make_params");
     unlink($tmp_make_file);
+    $done = TRUE;
   }
-  else {
+  if (!$done) {
     print $output;
   }
 }
@@ -194,7 +233,6 @@ function bake_unparse($array, $current = FALSE) {
  */
 function bake_include(&$info, &$config, $file) {
   include($file);
-  print_r($info);
 }
 
 function bake_merge_file(&$info, &$config, $file) {
@@ -221,7 +259,6 @@ function bake_merge_file(&$info, &$config, $file) {
     break;
   }
   if ($tmpfile) {
-    print $tmpfile;
     unlink($tmpfile);
   }
 }
