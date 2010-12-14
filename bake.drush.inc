@@ -56,7 +56,7 @@ function drush_bake() {
   $build = $a = $args[1]? $a : $name;
   $cmd = "drush bakeit $path $build";
   $cmd .= " --output=$name.make";
-  $cmd .= " --working-path";
+  $cmd .= " --working-copy";
   $cmd .= " --prepare-install";
   
   if ($type = drush_get_option('type')) {
@@ -66,6 +66,13 @@ function drush_bake() {
     $cmd .= " --type=dev";
   }
   system($cmd);
+  $standard = "$build/profiles/standard";
+  $minimal  = "$build/profiles/minimal";
+  system("rm -r $standard");
+  system("rm -r $minimal");
+  $default = "$build/sites/default";
+  system("chmod 777 $default/files");
+  system("chmod 777 $default/settings.php");
 
 
   
