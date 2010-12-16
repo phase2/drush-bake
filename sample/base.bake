@@ -1,0 +1,166 @@
+<?php
+function base_make_alter(&$info, &$config) {
+  //set up config options for drush bake
+  $details = pathinfo($config['files'][0]);
+  $name = $details['filename'];
+  $config['output'] = "$name.make";
+  $config['make'] = "$name";
+  $config['prepare-install'] = TRUE;
+  $config['working-copy'] = TRUE;
+
+  // Build file for the OpenPublic platform. This includes
+  // all core and modules patches as well.
+  //
+  //     $ drush make opic.make ['directory']
+
+  $info['api'] = 2;
+  $info['core'] = '7.0-rc2';
+
+  // Core ========================================================================
+
+  $info['projects']['drupal']['type'] = 'core';
+  $info['projects']['drupal']['download']['type'] = 'cvs';
+  $info['projects']['drupal']['download']['root'] = ':pserver:anonymous:anonymous@cvs.drupal.org:/cvs/drupal';
+  $info['projects']['drupal']['download']['revision'] = 'DRUPAL-7-0-RC-2';
+  $info['projects']['drupal']['download']['module'] = 'drupal';
+  $info['projects']['drupal']['patch'][] = 'http://drupal.org/files/issues/object_conversion_menu_router_build-972536-1.patch';
+
+  // Contrib Modules =============================================================
+
+  $info['projects']['cck']['subdir'] = 'contrib';
+  $info['projects']['cck']['type'] = 'module';
+  $info['projects']['cck']['download']['type'] = 'cvs';
+  $info['projects']['cck']['download']['module'] = 'contributions/modules/cck';
+  $info['projects']['cck']['download']['date'] = '2010-11-16';
+  $info['projects']['cck']['patch'][] = 'http://drupal.org/files/issues/cck_788692.patch';
+
+  $info['projects']['context']['subdir'] = 'contrib';
+  $info['projects']['context']['version'] = '3.0-alpha2';
+  $info['projects']['context']['patch'][] = 'http://drupal.org/files/issues/context_undefined_property-966768-1.patch';
+  $info['projects']['context']['patch'][] = 'http://drupal.org/files/issues/context_drupal_alter.patch';
+
+  $info['projects']['ctools']['subdir'] = 'contrib';
+  $info['projects']['ctools']['type'] = 'module';
+  $info['projects']['ctools']['download']['type'] = 'cvs';
+  $info['projects']['ctools']['download']['module'] = 'contributions/modules/ctools';
+  $info['projects']['ctools']['download']['date'] = '2010-12-10';
+  $info['projects']['ctools']['patch'][] = 'http://drupal.org/files/issues/fix-node-body.patch';
+  $info['projects']['ctools']['patch'][] = 'http://drupal.org/files/issues/fix-node-view-task.patch';
+
+  $info['projects']['date']['subdir'] = 'contrib';
+  $info['projects']['date']['type'] = 'module';
+  $info['projects']['date']['download']['type'] = 'cvs';
+  $info['projects']['date']['download']['module'] = 'contributions/modules/date';
+  $info['projects']['date']['download']['date'] = '2010-11-16';
+
+  $info['projects']['diff']['subdir'] = 'contrib';
+  $info['projects']['diff']['version'] = '2.0-beta2';
+
+  $info['projects']['entity']['subdir'] = 'contrib';
+  $info['projects']['entity']['version'] = '1.0-beta3';
+
+  $info['projects']['features']['subdir'] = 'contrib';
+  $info['projects']['features']['download']['type'] = 'cvs';
+  $info['projects']['features']['download']['module'] = 'contributions/modules/features';
+  $info['projects']['features']['download']['revision'] = 'DRUPAL-7--1';
+  $info['projects']['features']['download']['date'] = '2010-10-27 14:00 GMT';
+
+  $info['projects']['openidadmin']['subdir'] = 'contrib';
+  $info['projects']['openidadmin']['version'] = '1.0';
+
+  $info['projects']['pathauto']['subdir'] = 'contrib';
+  $info['projects']['pathauto']['version'] = '1.0-alpha2';
+
+  $info['projects']['strongarm']['subdir'] = 'contrib';
+  $info['projects']['strongarm']['version'] = '2.0-beta2';
+
+  $info['projects']['token']['subdir'] = 'contrib';
+  $info['projects']['token']['version'] = '1.0-alpha3';
+
+  $info['projects']['imce']['subdir'] = 'contrib';
+  $info['projects']['imce']['version'] = '1.0-beta1';
+
+  $info['projects']['imce_wysiwyg']['subdir'] = 'contrib';
+  $info['projects']['imce_wysiwyg']['version'] = '1.x-dev';
+
+  $info['projects']['views']['subdir'] = 'contrib';
+  $info['projects']['views']['type'] = 'module';
+  $info['projects']['views']['download']['type'] = 'cvs';
+  $info['projects']['views']['download']['module'] = 'contributions/modules/views';
+  $info['projects']['views']['download']['revision'] = 'DRUPAL-7--3';
+  $info['projects']['views']['download']['date'] = '2010-10-27 14:00 GMT';
+  // View join relationship
+  // http://drupal.org/node/954784
+  $info['projects']['views']['patch'][] = 'http://drupal.org/files/issues/view_join_array_value-954784.patch';
+  $info['projects']['views']['patch'][] = 'http://drupal.org/files/issues/views-rss-notice-969124.patch';
+  $info['projects']['views']['patch'][] = 'http://drupal.org/files/issues/views_query_985602_1.patch';
+
+  $info['projects']['nodequeue']['subdir'] = 'contrib';
+  $info['projects']['nodequeue']['type'] = 'module';
+  $info['projects']['nodequeue']['download']['type'] = 'cvs';
+  $info['projects']['nodequeue']['download']['module'] = 'contributions/modules/nodequeue';
+  $info['projects']['nodequeue']['download']['date'] = '2010-11-16';
+  // http://drupal.org/node/952138
+  $info['projects']['nodequeue']['patch'][] = 'http://drupal.org/files/issues/nodequeue-d7-db-insert-errors-fix.patch';
+  // http://drupal.org/node/941558
+  $info['projects']['nodequeue']['patch'][] = 'http://drupal.org/files/issues/nodequeue-941558-16.patch';
+  // http://drupal.org/node/976126
+  $info['projects']['nodequeue']['patch'][] = 'http://drupal.org/files/issues/nodequeue-count-fix-976126.patch';
+
+  $info['projects']['twitter_pull']['subdir'] = 'contrib';
+  $info['projects']['twitter_pull']['version'] = '1.0-alpha1';
+
+  $info['projects']['xmlsitemap']['subdir'] = 'contrib';
+  $info['projects']['xmlsitemap']['type'] = 'module';
+  $info['projects']['xmlsitemap']['download']['type'] = 'cvs';
+  $info['projects']['xmlsitemap']['download']['module'] = 'contributions/modules/xmlsitemap';
+  $info['projects']['xmlsitemap']['download']['date'] = '2010-11-16';
+
+  $info['projects']['wysiwyg']['subdir'] = 'contrib';
+  $info['projects']['wysiwyg']['type'] = 'module';
+  $info['projects']['wysiwyg']['download']['type'] = 'cvs';
+  $info['projects']['wysiwyg']['download']['module'] = 'contributions/modules/wysiwyg';
+  $info['projects']['wysiwyg']['download']['date'] = '2010-11-16';
+
+
+  // Custom Modules ==============================================================
+
+
+
+  // Themes ======================================================================
+
+  $info['projects']['tao']['version'] = '3.0-beta3';
+  $info['projects']['rubik']['version'] = '4.0-beta4';
+
+  // Libraries ===================================================================
+  $info['libraries']['ckeditor']['download']['type'] = 'get';
+  $info['libraries']['ckeditor']['download']['url'] = 'http://download.cksource.com/CKEditor/CKEditor/CKEditor%203.4.1/ckeditor_3.4.1.tar.gz';
+
+  // Type ========================================================================
+
+  if ($config['type'] == 'dev') {
+    $info['projects']['devel']['subdir'] = 'contrib';
+    $info['projects']['devel']['type'] = 'module';
+    $info['projects']['devel']['download']['type'] = 'cvs';
+    $info['projects']['devel']['download']['module'] = 'contributions/modules/devel';
+    $info['projects']['devel']['download']['date'] = '2010-10-20';
+
+    $info['projects']['coder']['subdir'] = 'contrib';
+    $info['projects']['coder']['version'] = '1.0-beta5';
+
+  }
+  elseif ($config['type'] == 'rel') {
+    $info['projects']['memcache']['subdir'] = 'contrib';
+    $info['projects']['memcache']['version'] = '1.0-beta3';
+    $info['projects']['memcache']['patch'][] = 'http://drupal.org/files/issues/sessions.656838.patch';
+  }
+}
+function base_post_make($path, $info, &$config) {
+  $standard = "$path/profiles/standard";
+  $minimal  = "$path/profiles/minimal";
+  system("rm -r $standard");
+  system("rm -r $minimal");
+  $default = "$path/sites/default";
+  system("chmod 777 $default/files");
+  system("chmod 777 $default/settings.php");
+}
