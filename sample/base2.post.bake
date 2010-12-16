@@ -1,0 +1,8 @@
+<?php 
+  $standard = "$path/profiles/standard";
+  $minimal  = "$path/profiles/minimal";
+  system("rm -r $standard");
+  system("rm -r $minimal");
+  $default = "$path/sites/default";
+  system("chmod 777 $default/files");
+  system("chmod 777 $default/settings.php");

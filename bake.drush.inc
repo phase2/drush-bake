@@ -287,8 +287,11 @@ function bake_merge_file(&$info, &$config, $file) {
   switch ($details['extension']) {
     case 'php':
     case 'bake':
-      //if a php file then let it modify info and config
-      bake_make_alter($info, $config, $file);
+      $details2 = pathinfo($details['filename']);
+      if ($details2['extension'] != 'post') {
+        //if a php file then let it modify info and config
+        bake_make_alter($info, $config, $file);
+      }
       // we do not want to blow away bake files becuase they might have post processing
       // so we store all the make files here
       $make_files[$file] = $tmpdir;
