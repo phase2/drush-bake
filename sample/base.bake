@@ -1,18 +1,4 @@
 <?php
-function base_make_alter(&$info, &$config) {
-  //set up config options for drush bake
-  $details = pathinfo($config['files'][0]);
-  $name = $details['filename'];
-  $config['output'] = "$name.make";
-  $config['make'] = "$name";
-  $config['prepare-install'] = TRUE;
-  $config['working-copy'] = TRUE;
-  $config['type'] = $config['type'] ? $config['type'] : 'dev';
-
-  // Build file for the OpenPublic platform. This includes
-  // all core and modules patches as well.
-  //
-  //     $ drush make opic.make ['directory']
 
   $info['api'] = 2;
   $info['core'] = '7.0-rc2';
@@ -155,13 +141,3 @@ function base_make_alter(&$info, &$config) {
     $info['projects']['memcache']['version'] = '1.0-beta3';
     $info['projects']['memcache']['patch'][] = 'http://drupal.org/files/issues/sessions.656838.patch';
   }
-}
-function base_post_make($path, $info, &$config) {
-  $standard = "$path/profiles/standard";
-  $minimal  = "$path/profiles/minimal";
-  system("rm -r $standard");
-  system("rm -r $minimal");
-  $default = "$path/sites/default";
-  system("chmod 777 $default/files");
-  system("chmod 777 $default/settings.php");
-}

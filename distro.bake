@@ -1,0 +1,22 @@
+<?php
+
+function distro_make_alter(&$info, &$config) {
+//set up config options for drush bake
+  $details = pathinfo($config['files'][0]);
+  $name = $details['filename'];
+  $config['output'] = "$name.make";
+  $config['make'] = "$name";
+  $config['prepare-install'] = TRUE;
+  $config['working-copy'] = TRUE;
+  $config['type'] = $config['type'] ? $config['type'] : 'dev';
+}
+function distro_post_make($path, &$info, &$config) {
+
+  $standard = "$path/profiles/standard";
+  $minimal  = "$path/profiles/minimal";
+  system("rm -r $standard");
+  system("rm -r $minimal");
+  $default = "$path/sites/default";
+  system("chmod 777 $default/files");
+  system("chmod 777 $default/settings.php");
+}

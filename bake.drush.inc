@@ -50,31 +50,8 @@ function bake_drush_command() {
 function drush_bake() {
   
   $args = func_get_args();
-  $details = pathinfo($args[0]);
-  $path = $args[0];
-  $name = $details['filename'];
-  $build = $a = $args[1]? $a : $name;
-  $cmd = "drush bakeit $path $build";
-  $cmd .= " --output=$name.make";
-  $cmd .= " --working-copy";
-  $cmd .= " --prepare-install";
-  
-  if ($type = drush_get_option('type')) {
-    $cmd .= " --type=$type";
-  }
-  else {
-    $cmd .= " --type=dev";
-  }
-  system($cmd);
-  $standard = "$build/profiles/standard";
-  $minimal  = "$build/profiles/minimal";
-  system("rm -r $standard");
-  system("rm -r $minimal");
-  $default = "$build/sites/default";
-  system("chmod 777 $default/files");
-  system("chmod 777 $default/settings.php");
-
-
+  $args[] = dirname(__FILE__). "/distro.bake";
+  call_user_func_array('drush_bakeit', $args);
   
 }
 /*
@@ -124,6 +101,7 @@ HELP;
   
   //grab args and add them to files
   $args = func_get_args();
+  print_r($args);
   $files = array_merge($files, $args);
 
   //init the info and config arrays
