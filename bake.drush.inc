@@ -101,7 +101,6 @@ HELP;
   
   //grab args and add them to files
   $args = func_get_args();
-  print_r($args);
   $files = array_merge($files, $args);
 
   //init the info and config arrays
