@@ -154,22 +154,27 @@ HELP;
   if($make_dir = $config['make']) {
     $tmp_make_file = tempnam("/tmp", "make");
     file_put_contents($tmp_make_file, $output);
-    //TODO: I am sure there is a drush way to do this but
-    //I do not know what it is
-    $make_params = '';
-    $make_params .= $config['version'] ? " --version" : "";
-    $make_params .= $v = $config['contrib-destination'] ? " --contrib-destination=$v" : "";
-    $make_params .= $config['force-complete'] ? " --force-complete" : "";
-    $make_params .= $config['md5'] ? " --md5" : "";
-    $make_params .= $config['no-clean'] ? " --no-clean" : "";
-    $make_params .= $config['no-core'] ? " --no-core" : "";
-    $make_params .= $config['no-patch-txt'] ? " --no-patch-txt" : "";
-    $make_params .= $config['prepare-install'] ? " --prepare-install" : "";
-    $make_params .= $config['tar'] ? " --tar" : "";
-    $make_params .= $config['test'] ? " --test" : "";
-    $make_params .= $v=$config['translations'] ? " --translations=$v" : "";
-    $make_params .= $config['working-copy'] ? " --working-copy" : "";
-    system("drush make $tmp_make_file $make_dir $make_params");
+    $make_options = array();
+    $make_options[] = $tmp_make_file;
+    $make_options[] = $make_dir;
+    $flag_options = array(
+      'version', 'force-complete', 'md5', 'no-clean', 'no-core', 'no-patch-txt',
+      'prepare-install', 'tar', 'test', 'working-copy',
+    );
+    $value_options = array(
+      'contrib-destination', 'translations',
+    );
+    foreach($flag_options as $key) {
+      if (isset($config[$key]) && $config[$key]) {
+        $make_options[] = '--' . $key;
+      }
+    }
+    foreach($value_options as $key) {
+      if (isset($config[$key]) && $config[$key]) {
+        $make_options[] = $key . '=' . $config[$key];
+      }
+    }
+    drush_backend_invoke('make', $make_options);
     unlink($tmp_make_file);
     foreach ($make_files as $file => $tmpdir) {
       bake_post_make($make_dir, $info, $config, $file);
