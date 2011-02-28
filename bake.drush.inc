@@ -88,21 +88,23 @@ HELP;
   // if we are getting stdin put in a temp file
   // and then add that file to the files array
   if (drush_get_option('stdin')) {
-    $stdin = file_get_content("php://stdin");
-      $stdinfile = tempname("/tmp", "stdin");
-    if (preg_match("/<?php", $stdin)) {
-      $stdinfile .= ".php";
+    $stdin = file_get_contents("php://stdin");
+      $stdinfile = tempnam("/tmp", "stdin");
+   // if (preg_match("/<\?php/", $stdin )) {
+    print "Joe $stdin Joe";
+    if (TRUE) {
+      $stdinfile .= ".bake";
     }
     else {
       $stdinfile .= ".make";
     }
-    $files[] = $stinfile;
+    file_put_contents($stdinfile, $stdin);
+    $files[] = $stdinfile;
   }
   
   //grab args and add them to files
   $args = func_get_args();
   $files = array_merge($files, $args);
-
   //init the info and config arrays
   $make_dir = FALSE;
   $info = array();
