@@ -14,7 +14,6 @@ function distro_make_alter(&$info, &$config) {
 }
 function distro_post_make($path, &$info, &$config) {
 
-  print_r($config);
   $standard = "$path/profiles/standard";
   $minimal  = "$path/profiles/minimal";
   system("rm -r $standard");
@@ -24,8 +23,6 @@ function distro_post_make($path, &$info, &$config) {
   system("chmod 777 $default/settings.php");
   if($config['type'] == 'package') {
     $name = $config['make'];
-    print_r("tar -zcf $name.tar.gz $path");
-    print_r("zip $name.zip $path");
     system("tar -zcf $name.tar.gz $path");
     system("zip $name.zip $path");
     system("find $path -name .git -print0 | xargs -0 rm -rf");
