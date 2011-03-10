@@ -5,7 +5,9 @@ function distro_make_alter(&$info, &$config) {
   $details = pathinfo($config['files'][0]);
   $name = $details['filename'];
   $config['output'] = "$name.make";
-  $config['make'] = "$name";
+  if (empty($config['make'])) {
+    $config['make'] = "$name";
+  }
   $config['prepare-install'] = TRUE;
   $config['type'] = $config['type'] ? $config['type'] : 'dev';
   if ($config['type'] == 'dev') {
