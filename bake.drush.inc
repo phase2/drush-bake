@@ -130,6 +130,13 @@ HELP;
   foreach ($config_keys as $key) {
     $config[$key] = drush_get_option($key);
   }
+  if ($extra_config_string = drush_get_option("config")) {
+    $extra_config = explode(",", $extra_config_string);
+    foreach ($extra_config as $item) {
+      list($key, $value) = explode(":", $item);
+      $config[$key] = $value;
+    }
+  }
   $config['files'] = $files;
 
   foreach ($files as $file) {
