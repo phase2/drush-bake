@@ -91,7 +91,6 @@ HELP;
     $stdin = file_get_contents("php://stdin");
       $stdinfile = tempnam("/tmp", "stdin");
    // if (preg_match("/<\?php/", $stdin )) {
-    print "Joe $stdin Joe";
     if (TRUE) {
       $stdinfile .= ".bake";
     }
@@ -162,6 +161,7 @@ HELP;
   }
   if($make_dir = $config['make']) {
     $tmp_make_file = tempnam("/tmp", "make");
+    print_r($output);
     file_put_contents($tmp_make_file, $output);
     $make_options = array();
     $make_options[] = $tmp_make_file;
@@ -298,3 +298,23 @@ function bake_merge_file(&$info, &$config, $file) {
     break;
   }
 }
+
+/*
+ * expose function to bake files to covert d.o contrib module to a dev download
+ */
+function bake_convert_to_dev(&$info, $project, $branch = 'AUTO') {
+  if($branch == 'AUTO') {
+    $version = split('-', $info['projects'][$project]['version']);
+    list($major, $minor) = split('\.', $version[0]);
+    list($cmajor, $cminor) = split('\.', $info['core']);
+    $branch = "$cmajor.x-$major.x";
+
+
+
+  }
+  $info['projects'][$project]['download']['type'] = 'git';
+  $info['projects'][$project]['download']['branch'] = $branch;
+  $info['projects'][$project]['download']['url'] = "http://git.drupal.org/project/$project.git";
+}
+
+
